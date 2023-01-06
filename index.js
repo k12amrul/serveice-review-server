@@ -23,6 +23,8 @@ const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology:
         // const serviceCollection=client.db('serviceDB').collection('services')
          const serviceCollection =client.db('serviceDB').collection('service')    
          const reviewCollection=client.db('serviceDB').collection('reviews')
+        //  const serviceCollection=client.db('serviceDB').collection('service')
+         
         
          app.get('/' , async (req, res )  => {
             const query ={}
@@ -68,6 +70,12 @@ const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology:
         app.post( '/reviews',   async (req, res )  => {
             const review=req.body
             const result= await reviewCollection.insertOne(review)
+            res.send(result)
+
+        })
+        app.post( '/addService',   async (req, res )  => {
+            const service=req.body
+            const result= await serviceCollection.insertOne(service)
             res.send(result)
 
         })
