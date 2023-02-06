@@ -3,8 +3,9 @@ const cors = require('cors');
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 // require('dotenv').config()
 require('dotenv').config()
-const app= express()
-const port = process.env.PORT ||5000
+const app = express()
+const jwt = require('jsonwebtoken');
+const port = process.env.PORT || 5000
 
 
 app.use(cors())
@@ -18,73 +19,81 @@ const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@clu
 // console.log(uri);
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
 
-  async function run(){
-    try{
+async function run() {
+    try {
         // const serviceCollection=client.db('serviceDB').collection('services')
-         const serviceCollection =client.db('serviceDB').collection('service')    
-         const reviewCollection=client.db('serviceDB').collection('reviews')
+        const serviceCollection = client.db('serviceDB').collection('service')
+        const reviewCollection = client.db('serviceDB').collection('reviews')
         //  const serviceCollection=client.db('serviceDB').collection('service')
-         
-        
-         app.get('/' , async (req, res )  => {
-            const query ={}
-            const cursor =serviceCollection.find(query).limit(3) // .skip(1)
-            const services = await cursor.toArray()
-            res.send(services)
-         })
-         app.get('/services'  ,  async(req, res ) => {
-            const query= {}
-            const cursor=serviceCollection.find(query) // .skip(1)
-            const services = await cursor.toArray()
-            res.send(services)
-         })
 
-         app.get('/services/:id' ,async(req,res )  =>  {
-            const id=req.params.id
-             const query ={ _id : ObjectId(id)}
-             const service = await   serviceCollection.findOne(query)
-             res.send(service)
-         })
+
+        app.get('/', async (req, res) => {
+            const query = {}
+            const cursor = serviceCollection.find(query).limit(3) // .skip(1)
+            const services = await cursor.toArray()
+            res.send(services)
+        })
+        app.get('/services', async (req, res) => {
+            const query = { price: { $lt: 100 } }
+            const cursor = serviceCollection.find(query) // .skip(1)
+            const services = await cursor.toArray()
+            res.send(services)
+        })
+
+        app.get('/services/:id', async (req, res) => {
+            const id = req.params.id
+            const query = { _id: ObjectId(id) }
+            const service = await serviceCollection.findOne(query)
+            res.send(service)
+        })
 
         // reviews  api 
-        app.get( '/reviews/:id' ,async (req ,res) => {
-            const id=req.params.id
-            const query ={ _id : ObjectId(id)}
+        app.get('/reviews/:id', async (req, res) => {
+            const id = req.params.id
+            const query = { _id: ObjectId(id) }
             const reviews = await reviewCollection.findOne(query)
             res.send(reviews)
         })
 
-        app.get('/reviews' , async (req ,res )  => {
-           // console.log(req.query )
-            let query ={}
-            if( req.query.email ){
-                query={
+        app.get('/reviews', async (req, res) => {
+            // console.log(req.query )
+            let query = {}
+            if (req.query.email) {
+                query = {
                     email: req.query.email
                 }
 
             }
-            const cursor =reviewCollection.find(query)
+            const cursor = reviewCollection.find(query)
             const reviews = await cursor.toArray()
             res.send(reviews)
         })
-        app.post( '/reviews',   async (req, res )  => {
-            const review=req.body
-            const result= await reviewCollection.insertOne(review)
+        app.post('/reviews', async (req, res) => {
+            const review = req.body
+            const result = await reviewCollection.insertOne(review)
             res.send(result)
 
         })
-        app.post( '/addService',   async (req, res )  => {
-            const service=req.body
-            const result= await serviceCollection.insertOne(service)
+        app.delete( '/review/:id', async( req ,res ) => {
+            const id=req.params.id
+            console.log(id)
+            const query = { _id : ObjectId( id)}
+            const result= await reviewCollection.deleteOne( query)
+            res.send(result)
+
+        })
+        app.post('/addService', async (req, res) => {
+            const service = req.body
+            const result = await serviceCollection.insertOne(service)
             res.send(result)
 
         })
     }
-    finally{
-        
+    finally {
+
     }
-   }
-   run().catch(err => console.error(err)) 
+}
+run().catch(err => console.error(err))
 
 // client.connect(err => {
 //   const collection = client.db("test").collection("devices");
@@ -95,7 +104,7 @@ const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology:
 
 
 
-app.get('/' ,(req,res) => {
+app.get('/', (req, res) => {
     res.send('aaaaaaaaasssssss')
 })
 
